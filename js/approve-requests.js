@@ -409,25 +409,14 @@
         }).join('');
     }
 
+    const activeSubmissions = new Set();
+
     /**
-     * Call public.approve_lab_request RPC
+     * Call public.approve_lab_request RPC using exact live signature
      */
     async function executeApproveRpc(requestId) {
         const client = getClient();
-
-        // 1. Try canonical p_request_id signature
-        let result = await client.rpc('approve_lab_request', { p_request_id: requestId });
-
-        if (result.error) {
-            const errMsg = (result.error.message || '').toLowerCase();
-            if (errMsg.includes('parameter') || errMsg.includes('signature') || errMsg.includes('named') || errMsg.includes('not found')) {
-                // Try fallback parameter names
-                result = await client.rpc('approve_lab_request', { _request_id: requestId });
-                if (result.error) {
-                    result = await client.rpc('approve_lab_request', { request_id: requestId });
-                }
-            }
-        }
+        const result = await client.rpc('approve_lab_request', { p_request_id: requestId });
 
         if (result.error) {
             throw result.error;
@@ -437,27 +426,14 @@
     }
 
     /**
-     * Call public.reject_lab_request RPC
+     * Call public.reject_lab_request RPC using exact live signature
      */
     async function executeRejectRpc(requestId, notes = null) {
         const client = getClient();
+        const payload = { p_request_id: requestId };
+        if (notes) payload.p_notes = notes;
 
-        // 1. Try canonical p_request_id signature with optional p_notes
-        let result = await client.rpc('reject_lab_request', { 
-            p_request_id: requestId,
-            p_notes: notes 
-        });
-
-        if (result.error) {
-            const errMsg = (result.error.message || '').toLowerCase();
-            if (errMsg.includes('parameter') || errMsg.includes('signature') || errMsg.includes('named') || errMsg.includes('not found')) {
-                // Try fallback parameter names
-                result = await client.rpc('reject_lab_request', { _request_id: requestId });
-                if (result.error) {
-                    result = await client.rpc('reject_lab_request', { request_id: requestId });
-                }
-            }
-        }
+        const result = await client.rpc('reject_lab_request', payload);
 
         if (result.error) {
             throw result.error;
@@ -470,15 +446,24 @@
      * Handle user click on Approve button
      */
     async function handleApprove(requestId, itemName, quantity) {
+        if (activeSubmissions.has(requestId)) {
+            console.warn(`Approval already in progress for request ${requestId}.`);
+            return;
+        }
+
         const confirmed = window.confirm(
             `Confirm Stock Approval:\n\nAre you sure you want to approve this request for ${quantity} unit(s) of "${itemName}"?\n\nThis will automatically deduct the stock from Store Inventory.`
         );
 
         if (!confirmed) return;
 
+        activeSubmissions.add(requestId);
         const row = document.getElementById(`req-row-${requestId}`);
         const buttons = row ? row.querySelectorAll('button') : [];
-        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
 
         try {
             await executeApproveRpc(requestId);
@@ -488,7 +473,12 @@
             console.error('Approve RPC failed:', err);
             const msg = err.message || 'Failed to approve request. Please check available stock.';
             showFeedback('error', msg, err);
-            buttons.forEach(btn => btn.disabled = false);
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+        } finally {
+            activeSubmissions.delete(requestId);
         }
     }
 
@@ -496,15 +486,24 @@
      * Handle user click on Reject button
      */
     async function handleReject(requestId, itemName) {
+        if (activeSubmissions.has(requestId)) {
+            console.warn(`Rejection already in progress for request ${requestId}.`);
+            return;
+        }
+
         const confirmed = window.confirm(
             `Confirm Request Rejection:\n\nAre you sure you want to reject the request for "${itemName}"?`
         );
 
         if (!confirmed) return;
 
+        activeSubmissions.add(requestId);
         const row = document.getElementById(`req-row-${requestId}`);
         const buttons = row ? row.querySelectorAll('button') : [];
-        buttons.forEach(btn => btn.disabled = true);
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
 
         try {
             await executeRejectRpc(requestId);
@@ -514,7 +513,12 @@
             console.error('Reject RPC failed:', err);
             const msg = err.message || 'Failed to reject request.';
             showFeedback('error', msg, err);
-            buttons.forEach(btn => btn.disabled = false);
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+        } finally {
+            activeSubmissions.delete(requestId);
         }
     }
 

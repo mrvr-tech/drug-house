@@ -171,154 +171,27 @@
             srNo = await fetchNextSrNo();
         }
 
-        // 1. Try canonical database signature (_ prefix with _sr_no)
+        // 1. Invoke canonical database RPC (exact live schema signature with _ prefix)
         const payloadUnderscore = {
-            _category: category,
-            _item_name: itemName,
-            _packages: packages,
-            _quantity: quantity,
-            _price: price,
-            _tax: tax,
             _bill_no: billNo,
+            _category: category,
             _date: date,
             _expiry_date: expiryDate,
-            _vendor_name: vendorName,
+            _item_name: itemName,
+            _packages: packages,
+            _price: price,
+            _quantity: quantity,
+            _sr_no: srNo,
+            _tax: tax,
             _vendor_address: vendorAddress,
-            _vendor_pan: vendorPan,
-            _sr_no: srNo
+            _vendor_name: vendorName,
+            _vendor_pan: vendorPan
         };
 
-        let result = await client.rpc('add_inventory_entry', payloadUnderscore);
+        const result = await client.rpc('add_inventory_entry', payloadUnderscore);
 
         if (result.error) {
-            const errMsg = (result.error.message || '').toLowerCase();
-            if (errMsg.includes('parameter') || errMsg.includes('signature') || errMsg.includes('not found') || errMsg.includes('named')) {
-                console.warn('Retrying add_inventory_entry RPC with p_ prefixed parameter payload...');
-                
-                const payloadPrefixed = {
-                    p_category: category,
-                    p_item_name: itemName,
-                    p_packages: packages,
-                    p_quantity: quantity,
-                    p_price: price,
-                    p_tax: tax,
-                    p_bill_no: billNo,
-                    p_date: date,
-                    p_expiry_date: expiryDate,
-                    p_vendor_name: vendorName,
-                    p_vendor_address: vendorAddress,
-                    p_vendor_pan: vendorPan,
-                    p_sr_no: srNo
-                };
-
-                result = await client.rpc('add_inventory_entry', payloadPrefixed);
-
-                if (result.error) {
-                    const errMsg2 = (result.error.message || '').toLowerCase();
-                    if (errMsg2.includes('parameter') || errMsg2.includes('signature') || errMsg2.includes('not found') || errMsg2.includes('named')) {
-                        console.warn('Retrying add_inventory_entry RPC with non-prefixed parameter payload...');
-                        
-                        const payloadUnprefixed = {
-                            category: category,
-                            item_name: itemName,
-                            packages: packages,
-                            quantity: quantity,
-                            price: price,
-                            tax: tax,
-                            bill_no: billNo,
-                            date: date,
-                            expiry_date: expiryDate,
-                            vendor_name: vendorName,
-                            vendor_address: vendorAddress,
-                            vendor_pan: vendorPan,
-                            sr_no: srNo
-                        };
-
-                        result = await client.rpc('add_inventory_entry', payloadUnprefixed);
-                    }
-                }
-            }
-        }
-
-        if (result.error) {
-            console.warn('RPC add_inventory_entry failed, attempting direct table insert fallback:', result.error.message);
-            
-            try {
-                // 1. Find or create item in inventory_items
-                let itemId = null;
-                const { data: existingItems } = await client
-                    .from('inventory_items')
-                    .select('*')
-                    .ilike('item_name', itemName)
-                    .limit(1);
-
-                if (existingItems && existingItems.length > 0) {
-                    const existing = existingItems[0];
-                    itemId = existing.id;
-                    const newStock = (parseInt(existing.current_stock, 10) || 0) + quantity;
-                    const newTotal = (parseInt(existing.total_quantity, 10) || 0) + quantity;
-
-                    await client
-                        .from('inventory_items')
-                        .update({
-                            current_stock: newStock,
-                            total_quantity: newTotal,
-                            price: price,
-                            tax: tax,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', itemId);
-                } else {
-                    const { data: newItem, error: newItemErr } = await client
-                        .from('inventory_items')
-                        .insert([{
-                            category: category,
-                            item_name: itemName,
-                            packages: packages,
-                            current_stock: quantity,
-                            total_quantity: quantity,
-                            price: price,
-                            tax: tax
-                        }])
-                        .select()
-                        .single();
-
-                    if (!newItemErr && newItem) {
-                        itemId = newItem.id;
-                    }
-                }
-
-                // 2. Insert into inventory_entries
-                const { data: entryData, error: entryErr } = await client
-                    .from('inventory_entries')
-                    .insert([{
-                        sr_no: srNo,
-                        item_id: itemId,
-                        category: category,
-                        item_name: itemName,
-                        packages: packages,
-                        quantity: quantity,
-                        price: price,
-                        tax: tax,
-                        bill_no: billNo,
-                        date: date,
-                        expiry_date: expiryDate,
-                        vendor_name: vendorName,
-                        vendor_address: vendorAddress,
-                        vendor_pan: vendorPan
-                    }])
-                    .select()
-                    .single();
-
-                if (entryErr) {
-                    throw entryErr;
-                }
-
-                return entryData || { success: true };
-            } catch (fallbackErr) {
-                console.error('Direct fallback insert error:', fallbackErr);
-                throw new Error(result.error.message || fallbackErr.message);
-            }
+            throw result.error;
         }
 
         return result.data;
@@ -412,7 +285,21 @@
 
             if (errorAlert) {
                 const message = err.message || 'Failed to save inventory entry in database.';
-                errorAlert.innerHTML = `<strong>❌ Error Adding Item:</strong><p style="margin-top: 4px;">${escapeHtml(message)}</p>`;
+                let detailsHtml = '';
+                if (err && typeof err === 'object') {
+                    const metaRows = [];
+                    if (err.code) metaRows.push(`<div><strong>Code:</strong> <code>${escapeHtml(err.code)}</code></div>`);
+                    if (err.details) metaRows.push(`<div><strong>Details:</strong> ${escapeHtml(err.details)}</div>`);
+                    if (err.hint) metaRows.push(`<div><strong>Hint:</strong> ${escapeHtml(err.hint)}</div>`);
+                    if (metaRows.length > 0) {
+                        detailsHtml = `
+                            <div style="margin-top: 10px; padding: 10px 14px; background: rgba(0, 0, 0, 0.05); border-left: 3px solid #dc3545; border-radius: 4px; font-size: 0.88rem; line-height: 1.6;">
+                                ${metaRows.join('')}
+                            </div>
+                        `;
+                    }
+                }
+                errorAlert.innerHTML = `<strong>❌ Error Adding Item:</strong><p style="margin-top: 4px;">${escapeHtml(message)}</p>${detailsHtml}`;
                 errorAlert.style.display = 'block';
                 errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }

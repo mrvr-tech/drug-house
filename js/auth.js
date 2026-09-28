@@ -123,27 +123,16 @@
         // Fetch fresh profile from Supabase
         const profile = await fetchProfile(user.id);
         if (profile) {
+            // Attach email for UI display purposes
+            profile.email = user.email || '';
             sessionStorage.setItem('pharmacy_user_profile', JSON.stringify(profile));
             return profile;
         }
 
-        // Fallback: Infer role from metadata or email if profile table is not populated yet
-        const email = (user.email || '').toLowerCase();
-        const adminEmail = ((config && config.ADMIN_EMAIL) || 'vedantpatil230406@gmail.com').toLowerCase();
-        const isStoreAdmin = email === adminEmail || email === 'rathodstudents@gmail.com' || email.startsWith('admin');
-        const role = user.user_metadata?.role || (isStoreAdmin ? 'store' : 'lab');
-        const labName = user.user_metadata?.lab_name || (role === 'lab' ? `Vendor ${email.replace(/[^0-9]/g, '') || '1'}` : null);
-        
-        const fallbackProfile = {
-            id: user.id,
-            email: user.email,
-            username: user.user_metadata?.username || email.split('@')[0],
-            role: role,
-            lab_name: labName,
-            full_name: user.user_metadata?.full_name || (role === 'store' ? 'Store Keeper' : labName)
-        };
-        sessionStorage.setItem('pharmacy_user_profile', JSON.stringify(fallbackProfile));
-        return fallbackProfile;
+        // Do not infer or promote an admin role from email alone.
+        // The live public.profiles record is authoritative.
+        console.warn(`No authoritative profile record found in public.profiles for user ID: ${user.id}`);
+        return null;
     }
 
     /**
@@ -189,7 +178,12 @@
 
         // Fetch user profile from Supabase profiles table
         const profile = await getCurrentProfile(data.user);
-        const role = profile?.role || 'store';
+        if (!profile || !profile.role) {
+            await client.auth.signOut();
+            sessionStorage.removeItem('pharmacy_user_profile');
+            throw new Error('Access denied: No profile record found for this account. Please contact Store Administration.');
+        }
+        const role = profile.role;
         const redirectUrl = getDashboardUrl(role);
 
         return {

@@ -17,6 +17,7 @@
 
     let availableItems = [];
     let currentProfile = null;
+    let isSubmitting = false;
 
     /**
      * Get initialized Supabase client
@@ -216,11 +217,14 @@
             return;
         }
 
+        if (isSubmitting) return;
+
         // Disable submit button
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Submitting Requisition...';
         }
+        isSubmitting = true;
 
         try {
             const client = getClient();
@@ -229,116 +233,43 @@
             if (!user) throw new Error('User is not authenticated.');
 
             const profile = currentProfile || await auth.getCurrentProfile(user);
-            const labName = profile.lab_name || profile.username || 'Lab User';
-            
-            // Resolve actual valid lab_id from public.labs table
-            let labId = profile.lab_id;
-            if (!labId) {
-                const targetLabName = profile.lab_name || user.user_metadata?.lab_name || '';
-                if (targetLabName) {
-                    const { data: labRows } = await client
-                        .from('labs')
-                        .select('id')
-                        .ilike('name', `%${targetLabName.trim()}%`)
-                        .limit(1);
-                    if (labRows && labRows.length > 0) {
-                        labId = labRows[0].id;
-                    }
-                }
-            }
+            const labId = profile?.lab_id;
 
             if (!labId) {
-                // Fallback to first available laboratory in database
-                const { data: defaultLab } = await client
-                    .from('labs')
-                    .select('id')
-                    .order('name', { ascending: true })
-                    .limit(1);
-                if (defaultLab && defaultLab.length > 0) {
-                    labId = defaultLab[0].id;
-                }
+                throw new Error('Your user account is not linked to an assigned vendor. Please contact the Store Admin.');
             }
 
-            if (!labId) {
-                throw new Error('No registered vendor found in database. Please ask the Store Keeper to add a vendor.');
+            // 1. Insert requisition header into lab_requests table
+            const headerPayload = {
+                lab_id: labId,
+                status: 'Pending',
+                requested_by: user.id
+            };
+
+            const { data: headerData, error: headerErr } = await client
+                .from('lab_requests')
+                .insert([headerPayload])
+                .select()
+                .single();
+
+            if (headerErr || !headerData) {
+                throw (headerErr || new Error('Failed to create requisition request.'));
             }
 
-            const today = new Date().toISOString().split('T')[0];
+            const reqId = headerData.id;
 
-            let reqId = null;
+            // 2. Insert line item detail into lab_request_items table
+            const { error: lineErr } = await client
+                .from('lab_request_items')
+                .insert([{
+                    lab_request_id: reqId,
+                    inventory_item_id: itemId,
+                    count: qty,
+                    status: 'Pending'
+                }]);
 
-            // 1. Try create_lab_requisition RPC (transactional and bypasses client RLS race conditions)
-            try {
-                const { data: rpcData, error: rpcErr } = await client.rpc('create_lab_requisition', {
-                    p_lab_id: labId,
-                    p_item_id: itemId,
-                    p_quantity: qty
-                });
-                if (!rpcErr && rpcData && rpcData.request_id) {
-                    reqId = rpcData.request_id;
-                }
-            } catch (rpcEx) {
-                console.info('create_lab_requisition RPC unhandled, falling back to direct table inserts:', rpcEx);
-            }
-
-            if (!reqId) {
-                // Ensure profile is synced with lab_id in database
-                try {
-                    await client.from('profiles').upsert([{
-                        id: user.id,
-                        role: 'lab',
-                        lab_id: labId,
-                        display_name: labName
-                    }]);
-                } catch (profSyncErr) {
-                    console.warn('Profile sync notice:', profSyncErr);
-                }
-
-                // Insert requisition header into lab_requests table
-                const headerPayload = {
-                    lab_id: labId,
-                    status: 'Pending',
-                    requested_by: user.id
-                };
-
-                const { data: headerData, error: headerErr } = await client
-                    .from('lab_requests')
-                    .insert([headerPayload])
-                    .select();
-
-                if (headerErr) {
-                    console.warn('Header insert error, trying flat payload fallback:', headerErr.message);
-                    const flatPayload = {
-                        lab_id: labId,
-                        item_id: itemId,
-                        quantity: qty,
-                        status: 'Pending',
-                        requested_by: user.id
-                    };
-                    const { data: flatData, error: flatErr } = await client
-                        .from('lab_requests')
-                        .insert([flatPayload])
-                        .select();
-
-                    if (flatErr) throw (headerErr || flatErr);
-                    if (flatData && flatData.length > 0) reqId = flatData[0].id;
-                } else if (headerData && headerData.length > 0) {
-                    reqId = headerData[0].id;
-                }
-
-                // Insert line item detail into lab_request_items
-                if (reqId) {
-                    try {
-                        await client.from('lab_request_items').insert([{
-                            lab_request_id: reqId,
-                            inventory_item_id: itemId,
-                            count: qty,
-                            status: 'Pending'
-                        }]);
-                    } catch (lineErr) {
-                        console.info('lab_request_items line item insert notice:', lineErr);
-                    }
-                }
+            if (lineErr) {
+                throw lineErr;
             }
 
             // Success feedback
@@ -368,11 +299,27 @@
         } catch (err) {
             console.error('Failed to submit requisition:', err);
             if (errorAlert) {
-                errorAlert.innerHTML = `<strong>❌ Requisition Error:</strong> ${escapeHtml(err.message || 'Failed to submit requisition. Please try again.')}`;
+                const message = err.message || 'Failed to submit requisition. Please try again.';
+                let detailsHtml = '';
+                if (err && typeof err === 'object') {
+                    const metaRows = [];
+                    if (err.code) metaRows.push(`<div><strong>Code:</strong> <code>${escapeHtml(err.code)}</code></div>`);
+                    if (err.details) metaRows.push(`<div><strong>Details:</strong> ${escapeHtml(err.details)}</div>`);
+                    if (err.hint) metaRows.push(`<div><strong>Hint:</strong> ${escapeHtml(err.hint)}</div>`);
+                    if (metaRows.length > 0) {
+                        detailsHtml = `
+                            <div style="margin-top: 10px; padding: 10px 14px; background: rgba(0, 0, 0, 0.05); border-left: 3px solid #dc3545; border-radius: 4px; font-size: 0.88rem; line-height: 1.6;">
+                                ${metaRows.join('')}
+                            </div>
+                        `;
+                    }
+                }
+                errorAlert.innerHTML = `<strong>❌ Requisition Error:</strong><p style="margin-top: 4px;">${escapeHtml(message)}</p>${detailsHtml}`;
                 errorAlert.style.display = 'block';
                 errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         } finally {
+            isSubmitting = false;
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '✓ Submit Request';

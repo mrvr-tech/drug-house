@@ -167,7 +167,10 @@
             cachedUsers = users;
             cachedLabs = labs;
 
-            renderUsersTable(users);
+            const session = await auth.getSession();
+            const currentUserId = session?.user?.id || null;
+
+            renderUsersTable(users, currentUserId);
             renderLabsTable(labs);
             populateLabDropdown(labs);
 
@@ -187,7 +190,7 @@
     /**
      * Render Users Table
      */
-    function renderUsersTable(users) {
+    function renderUsersTable(users, currentUserId = null) {
         const tbody = document.getElementById('usersTableBody');
         if (!tbody) return;
 
@@ -211,17 +214,18 @@
                 ? '<em style="color: #8c9b91;">N/A (Store Admin)</em>'
                 : `<strong>${escapeHtml(user.lab_name || 'Vendor')}</strong>`;
 
+            const isProtectedAdmin = (currentUserId && user.id === currentUserId) || user.role === 'store';
+            const actionButton = isProtectedAdmin
+                ? '<button type="button" class="btn-danger-sm" disabled style="opacity: 0.5; cursor: not-allowed;" title="Store Admin accounts cannot be deleted">🔒 Protected</button>'
+                : `<button type="button" class="btn-danger-sm" onclick="UserManagementModule.handleRemoveUser('${user.id}', '${escapeHtml(user.display_name)}')">🗑️ Remove</button>`;
+
             return `
                 <tr>
                     <td><strong>${escapeHtml(user.display_name || 'User')}</strong></td>
                     <td>${escapeHtml(user.email || '-')}</td>
                     <td>${roleBadge}</td>
                     <td>${labDisplay}</td>
-                    <td>
-                        <button type="button" class="btn-danger-sm" onclick="UserManagementModule.handleRemoveUser('${user.id}', '${escapeHtml(user.display_name)}')">
-                            🗑️ Remove
-                        </button>
-                    </td>
+                    <td>${actionButton}</td>
                 </tr>
             `;
         }).join('');
@@ -466,47 +470,13 @@
         const client = getClient();
 
         try {
-            let result;
-            try {
-                result = await invokeAdminFunction('create-user', {
-                    display_name: displayName,
-                    email: email,
-                    password: password,
-                    user_type: userType,
-                    lab_id: userType === 'lab' ? labId : null
-                });
-            } catch (edgeErr) {
-                console.warn('Edge function create-user failed, attempting direct signup & profile creation fallback:', edgeErr.message);
-                
-                // Fallback: Supabase signUp and profile insert
-                const { data: signUpData, error: signUpErr } = await client.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            role: userType,
-                            display_name: displayName,
-                            lab_id: userType === 'lab' ? labId : null
-                        }
-                    }
-                });
-
-                if (signUpErr || !signUpData.user) {
-                    throw new Error(signUpErr?.message || edgeErr.message);
-                }
-
-                // Insert into public.profiles
-                await client.from('profiles').upsert({
-                    id: signUpData.user.id,
-                    role: userType,
-                    lab_id: userType === 'lab' ? labId : null,
-                    display_name: displayName
-                });
-
-                result = {
-                    message: `User "${displayName}" created successfully!`
-                };
-            }
+            const result = await invokeAdminFunction('create-user', {
+                display_name: displayName,
+                email: email,
+                password: password,
+                user_type: userType,
+                lab_id: userType === 'lab' ? labId : null
+            });
 
             closeModal('addUserModal');
             if (form) form.reset();
@@ -531,6 +501,19 @@
      * Handle Remove User Action
      */
     async function handleRemoveUser(userId, displayName) {
+        const session = await auth.getSession();
+        const currentUserId = session?.user?.id;
+        if (currentUserId && userId === currentUserId) {
+            showAlert('error', 'Security restriction: You cannot delete your own active Store Admin account.');
+            return;
+        }
+
+        const targetUser = (cachedUsers || []).find(u => u.id === userId);
+        if (targetUser && targetUser.role === 'store') {
+            showAlert('error', 'Security restriction: Store Admin accounts cannot be deleted.');
+            return;
+        }
+
         if (!confirm(`Are you sure you want to remove user "${displayName}"?\n\nThis will remove the user account permanently.`)) {
             return;
         }

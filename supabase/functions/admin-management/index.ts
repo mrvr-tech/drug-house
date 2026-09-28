@@ -118,7 +118,7 @@ serve(async (req: Request) => {
 
       const enrichedProfiles = (profiles || []).map(p => ({
         id: p.id,
-        email: userEmailMap.get(p.id) || (p.role === "store" ? "rathodstudents@gmail.com" : "-"),
+        email: userEmailMap.get(p.id) || (p.role === "store" ? "vedantpatil230406@gmail.com" : "-"),
         display_name: p.display_name || (p.role === "store" ? "Store Keeper" : "Lab User"),
         role: p.role,
         lab_id: p.lab_id,
@@ -283,6 +283,14 @@ serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ error: "Target user profile not found." }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Prevent deletion of any Store Admin account
+      if (targetProfile.role === "store") {
+        return new Response(
+          JSON.stringify({ error: "Security restriction: Store Admin accounts cannot be deleted." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
