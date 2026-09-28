@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User & Lab Management - Pharmacy Store</title>
+    <title>User & Vendor Management - Siddheshwar Drug House</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-top">
-            <img src="../assets/college-logo.png" alt="Vidya Niketan College of Pharmacy logo">
+            <img src="../assets/siddheshwar-drug-house-logo-v3.svg" alt="Siddheshwar Drug House logo">
             <div>
-                <h1 class="college-title">Vidya Niketan College of Pharmacy</h1>
-                <p class="college-subtitle">Lakhewadi, Pune</p>
+                <h1 class="college-title">Siddheshwar Drug House</h1>
+                <p class="college-subtitle">Medical Wholesale &bull; Behind The Market Yard, Mangalwedha, Solapur &bull; Tel: 9860326328</p>
             </div>
         </div>
 
         <div class="system-title">
-            <h2>Pharmacy Store Management</h2>
-            <p>Complete Inventory and Lab Management System</p>
+            <h2>Medical Wholesale Store Management</h2>
+            <p>Complete Inventory and Vendor Management System</p>
         </div>
     </header>
 
@@ -33,7 +33,7 @@
                 <li><a href="approve-requests.html" class="nav-link">Approve Requests</a></li>
                 <li><a href="expiry-alerts.html" class="nav-link">Expiry Alerts</a></li>
                 <li><a href="reports.html" class="nav-link">Reports</a></li>
-                <li><a href="user-management.html" class="nav-link active">Users & Labs</a></li>
+                <li><a href="user-management.html" class="nav-link active">Users & Vendors</a></li>
             </ul>
 
             <div class="nav-meta">
@@ -50,9 +50,9 @@
         <div class="content">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                 <div>
-                    <h2 class="section-title">User & Laboratory Management</h2>
+                    <h2 class="section-title">User & Vendor Management</h2>
                     <p class="section-intro">
-                        Administer application accounts for Store personnel and Laboratory users, and manage campus lab units.
+                        Administer application accounts for Store personnel and Vendor users, and manage vendor units.
                     </p>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     👥 User Accounts (<span id="totalUsersCount">0</span>)
                 </button>
                 <button type="button" id="tabLabsBtn" class="tab-btn" onclick="UserManagementModule.switchTab('labs')">
-                    🔬 Laboratories (<span id="totalLabsCount">0</span>)
+                    🏢 Vendors (<span id="totalLabsCount">0</span>)
                 </button>
             </div>
 
@@ -76,7 +76,7 @@
                     <div>
                         <h3 style="color: var(--brand-deep); font-size: 1.15rem;">Application Users</h3>
                         <p style="font-size: 0.85rem; color: #5a7061; margin-top: 2px;">
-                            Registered Store Keepers and Lab Requisition accounts.
+                            Registered Store Keepers and Vendor Requisition accounts.
                         </p>
                     </div>
                     <button type="button" class="btn" onclick="UserManagementModule.openModal('addUserModal')" style="font-size: 0.9rem; padding: 9px 18px;">
@@ -91,7 +91,7 @@
                                 <th>Display Name</th>
                                 <th>Email / Login</th>
                                 <th>Role</th>
-                                <th>Assigned Lab</th>
+                                <th>Assigned Vendor</th>
                                 <th style="width: 110px;">Actions</th>
                             </tr>
                         </thead>
@@ -110,17 +110,17 @@
             <div id="labsSection" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
-                        <h3 style="color: var(--brand-deep); font-size: 1.15rem;">Configured Laboratories</h3>
+                        <h3 style="color: var(--brand-deep); font-size: 1.15rem;">Configured Vendors</h3>
                         <p style="font-size: 0.85rem; color: #5a7061; margin-top: 2px;">
-                            Connected campus laboratories eligible for stock requisitioning.
+                            Connected vendors eligible for stock requisitioning.
                         </p>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button type="button" class="btn btn-secondary" onclick="UserManagementModule.seedStandardLabs()" style="font-size: 0.88rem; padding: 9px 14px;">
-                            🌱 Seed Standard Labs (1-17)
+                            🌱 Seed Standard Vendors (1-17)
                         </button>
                         <button type="button" class="btn" onclick="UserManagementModule.openModal('addLabModal')" style="font-size: 0.9rem; padding: 9px 18px;">
-                            ➕ Add New Lab
+                            ➕ Add New Vendor
                         </button>
                     </div>
                 </div>
@@ -129,7 +129,7 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Lab Name</th>
+                                <th>Vendor Name</th>
                                 <th>Created At</th>
                                 <th style="width: 140px;">Actions</th>
                             </tr>
@@ -137,7 +137,7 @@
                         <tbody id="labsTableBody">
                             <tr>
                                 <td colspan="3" style="text-align: center; padding: 25px; color: #6a7a6f;">
-                                    ⏳ Loading laboratory records...
+                                    ⏳ Loading vendor records...
                                 </td>
                             </tr>
                         </tbody>
@@ -160,32 +160,32 @@
 
                     <div class="form-group">
                         <label for="userDisplayName">Display Name *</label>
-                        <input type="text" id="userDisplayName" placeholder="e.g., Lab 18 In-Charge or Pharmacist John" required>
+                        <input type="text" id="userDisplayName" placeholder="e.g., Vendor 18 In-Charge or Pharmacist John" required>
                     </div>
 
                     <div class="form-group">
                         <label for="userEmail">Email Address *</label>
-                        <input type="email" id="userEmail" placeholder="e.g., lab18@pharmacy.com" required>
+                        <input type="email" id="userEmail" placeholder="e.g., vendor18@pharmacy.com" required>
                     </div>
 
                     <div class="form-group">
                         <label for="userTypeSelect">User Type / Role *</label>
                         <select id="userTypeSelect" required>
-                            <option value="lab" selected>Lab User (Requisition & History Portal)</option>
+                            <option value="lab" selected>Vendor User (Requisition & History Portal)</option>
                             <option value="store">Store Admin (Inventory & Approvals Portal)</option>
                         </select>
                     </div>
 
                     <div class="form-group" id="userLabGroup">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <label for="userLabSelect" style="margin-bottom: 0;">Assigned Laboratory *</label>
-                            <button type="button" class="btn btn-secondary" onclick="UserManagementModule.quickAddLabPrompt()" style="padding: 3px 8px; font-size: 0.75rem; border-radius: 4px; line-height: 1.2;">➕ Quick Add Lab</button>
+                            <label for="userLabSelect" style="margin-bottom: 0;">Assigned Vendor *</label>
+                            <button type="button" class="btn btn-secondary" onclick="UserManagementModule.quickAddLabPrompt()" style="padding: 3px 8px; font-size: 0.75rem; border-radius: 4px; line-height: 1.2;">➕ Quick Add Vendor</button>
                         </div>
                         <select id="userLabSelect" required>
-                            <option value="">-- Loading Labs... --</option>
+                            <option value="">-- Loading Vendors... --</option>
                         </select>
                         <div id="noLabsNotice" style="display: none; margin-top: 6px; font-size: 0.8rem; color: #b45309; background: #fffbeb; padding: 8px 10px; border-radius: 6px; border: 1px solid #fde68a;">
-                            ⚠️ <strong>No laboratories found.</strong> <a href="javascript:void(0)" onclick="UserManagementModule.seedStandardLabs();" style="color: #92400e; font-weight: 700; text-decoration: underline;">Click to auto-create standard labs</a> or <a href="javascript:void(0)" onclick="UserManagementModule.quickAddLabPrompt();" style="color: #92400e; font-weight: 700; text-decoration: underline;">add a new lab</a>.
+                            ⚠️ <strong>No vendors found.</strong> <a href="javascript:void(0)" onclick="UserManagementModule.seedStandardLabs();" style="color: #92400e; font-weight: 700; text-decoration: underline;">Click to auto-create standard vendors</a> or <a href="javascript:void(0)" onclick="UserManagementModule.quickAddLabPrompt();" style="color: #92400e; font-weight: 700; text-decoration: underline;">add a new vendor</a>.
                         </div>
                     </div>
 
@@ -207,7 +207,7 @@
     <div id="addLabModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>➕ Add New Laboratory</h3>
+                <h3>➕ Add New Vendor</h3>
                 <button type="button" class="modal-close-btn" onclick="UserManagementModule.closeModal('addLabModal')">✕</button>
             </div>
             <form id="addLabForm">
@@ -215,14 +215,14 @@
                     <div id="addLabError" class="alert alert-danger" style="display: none; margin-bottom: 16px; font-size: 0.88rem;"></div>
 
                     <div class="form-group">
-                        <label for="labNameInput">Laboratory Name *</label>
-                        <input type="text" id="labNameInput" placeholder="e.g., Lab 18 - Microbiology" required>
+                        <label for="labNameInput">Vendor Name *</label>
+                        <input type="text" id="labNameInput" placeholder="e.g., Vendor 18 or ABC Medicals" required>
                     </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="UserManagementModule.closeModal('addLabModal')">Cancel</button>
-                    <button type="submit" id="addLabSubmitBtn" class="btn">Create Lab</button>
+                    <button type="submit" id="addLabSubmitBtn" class="btn">Create Vendor</button>
                 </div>
             </form>
         </div>
@@ -230,7 +230,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-        Vidya Niketan College of Pharmacy | Pharmacy Store Management System
+        Siddheshwar Drug House | Medical Wholesale | Behind The Market Yard, Mangalwedha, Solapur | Phone: 9860326328
     </footer>
 
     <!-- Scripts -->

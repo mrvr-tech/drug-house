@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" width="900" height="300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#A5F3FC"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="300" rx="36" fill="#FFFFFF"/>
+  <rect x="40" y="50" width="200" height="200" rx="56" fill="url(#bg)"/>
+  <path d="M190 98 C175 70 95 70 95 108 C95 148 185 138 185 190 C185 228 105 232 90 202" fill="none" stroke="url(#s)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="200" y="66" width="8" height="24" rx="4" fill="#FFFFFF" opacity=".9"/>
+  <rect x="192" y="74" width="24" height="8" rx="4" fill="#FFFFFF" opacity=".9"/>
+  <text x="270" y="140" font-family="'Poppins', 'Segoe UI', Arial, sans-serif" font-size="78" font-weight="800" fill="#0B2A3C">Siddheshwar</text>
+  <text x="274" y="192" font-family="'Poppins', 'Segoe UI', Arial, sans-serif" font-size="40" font-weight="700" letter-spacing="12" fill="#2563EB">DRUG HOUSE</text>
+  <rect x="274" y="212" width="60" height="4" rx="2" fill="#06B6D4"/>
+  <text x="274" y="248" font-family="'Poppins', 'Segoe UI', Arial, sans-serif" font-size="20" font-weight="600" letter-spacing="6" fill="#64748B">MEDICAL WHOLESALE</text>
+</svg>

@@ -240,7 +240,7 @@
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 30px; color: #6a7a6f;">
                         <div style="font-size: 1.8rem; margin-bottom: 6px;">✨</div>
-                        <strong>No pending lab requests.</strong>
+                        <strong>No pending vendor requests.</strong>
                         <p style="margin-top: 4px; font-size: 0.88rem; color: #8c9b91;">
                             All requisitions have been processed.
                         </p>
@@ -547,7 +547,7 @@
         try {
             const session = await auth.getSession();
             const user = session?.user;
-            if (user && user.email && (user.email.toLowerCase() === 'rathodstudents@gmail.com' || user.email.toLowerCase().startsWith('admin'))) {
+            if (user && user.email && (user.email.toLowerCase() === 'vedantpatil230406@gmail.com' || user.email.toLowerCase() === 'rathodstudents@gmail.com' || user.email.toLowerCase().startsWith('admin'))) {
                 await client.from('profiles').upsert([{
                     id: user.id,
                     role: 'store',

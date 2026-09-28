@@ -187,7 +187,7 @@
         if (userAuth && userAuth.profile && userAuth.profile.lab_name) {
             const titleEl = document.getElementById('labHeaderTitle');
             if (titleEl) {
-                titleEl.textContent = `🔬 ${userAuth.profile.lab_name} Catalog`;
+                titleEl.textContent = `🏢 ${userAuth.profile.lab_name} Catalog`;
             }
         }
 

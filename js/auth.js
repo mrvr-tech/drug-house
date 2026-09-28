@@ -40,7 +40,7 @@
         }
         const lower = trimmed.toLowerCase();
         if (lower === 'admin') {
-            return (config && config.ADMIN_EMAIL) || 'rathodstudents@gmail.com';
+            return (config && config.ADMIN_EMAIL) || 'vedantpatil230406@gmail.com';
         }
         const domain = (config && config.DEFAULT_EMAIL_DOMAIN) || 'pharmacy.com';
         return `${lower}@${domain}`;
@@ -129,10 +129,10 @@
 
         // Fallback: Infer role from metadata or email if profile table is not populated yet
         const email = (user.email || '').toLowerCase();
-        const adminEmail = ((config && config.ADMIN_EMAIL) || 'rathodstudents@gmail.com').toLowerCase();
-        const isStoreAdmin = email === adminEmail || email.startsWith('admin');
+        const adminEmail = ((config && config.ADMIN_EMAIL) || 'vedantpatil230406@gmail.com').toLowerCase();
+        const isStoreAdmin = email === adminEmail || email === 'rathodstudents@gmail.com' || email.startsWith('admin');
         const role = user.user_metadata?.role || (isStoreAdmin ? 'store' : 'lab');
-        const labName = user.user_metadata?.lab_name || (role === 'lab' ? `Lab ${email.replace(/[^0-9]/g, '') || '1'}` : null);
+        const labName = user.user_metadata?.lab_name || (role === 'lab' ? `Vendor ${email.replace(/[^0-9]/g, '') || '1'}` : null);
         
         const fallbackProfile = {
             id: user.id,
@@ -232,8 +232,8 @@
                 const displayName = profile.display_name || profile.full_name || profile.username || 'Store Keeper';
                 userChip.textContent = `Store Admin: ${displayName}`;
             } else if (profile.role === 'lab') {
-                const displayName = profile.display_name || profile.lab_name || profile.full_name || profile.username || 'Lab User';
-                userChip.textContent = `Lab User: ${displayName}`;
+                const displayName = profile.display_name || profile.lab_name || profile.full_name || profile.username || 'Vendor User';
+                userChip.textContent = `Vendor User: ${displayName}`;
             }
         }
 

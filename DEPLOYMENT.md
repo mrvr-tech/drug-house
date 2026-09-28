@@ -1,6 +1,6 @@
 # Production Deployment Guide — Pharmacy Store Management System
 
-This document outlines the step-by-step production deployment procedure for the **Pharmacy Store Management System** (Vidya Niketan College of Pharmacy).
+This document outlines the step-by-step production deployment procedure for the **Pharmacy Store Management System** (Siddheshwar Drug House).
 
 ---
 
@@ -119,13 +119,13 @@ npx supabase secrets set SUPABASE_SERVICE_ROLE_KEY="<your-service-role-key>"
 
 After deploying the frontend and Edge Function, complete these production verification steps:
 
-- [ ] **1. Store/Admin Login**: Log in as Store Keeper (`rathodstudents@gmail.com` or `admin`). Confirm redirect to `store/dashboard.html` with display name in navigation.
-- [ ] **2. Lab Login**: Log in as a Lab User (e.g. `lab1@pharmacy.com` or `lab1`). Confirm redirect to `lab/dashboard.html`.
-- [ ] **3. Access Control**: Ensure Lab users cannot navigate to `store/dashboard.html` or any `/store/*` URL.
+- [ ] **1. Store/Admin Login**: Log in as Store Keeper (`vedantpatil230406@gmail.com` or `admin`). Confirm redirect to `store/dashboard.html` with display name in navigation.
+- [ ] **2. Vendor Login**: Log in as a Vendor User (e.g. `vendor1@pharmacy.com` or `vendor1`). Confirm redirect to `lab/dashboard.html`.
+- [ ] **3. Access Control**: Ensure Vendor users cannot navigate to `store/dashboard.html` or any `/store/*` URL.
 - [ ] **4. Inventory Entry**: In `store/add-item.html`, submit a new item. Verify it appears on `store/inventory.html` and `store/dashboard.html`.
-- [ ] **5. Lab Requisition**: In `lab/request-item.html`, submit a requisition for stock. Verify it displays under `lab/request-history.html` as `Pending`.
-- [ ] **6. Store Approval**: In `store/approve-requests.html`, approve the requisition. Verify store inventory stock decreases and lab request status becomes `Approved`.
-- [ ] **7. User Management**: In `store/user-management.html`, add a test user and verify role and lab assignments.
-- [ ] **8. Lab Management**: In `store/user-management.html`, add a test lab and verify dependency protection prevents accidental deletion.
-- [ ] **9. Reports**: In `store/reports.html`, verify Purchase, Lab Usage, and Current Stock tables generate accurately and export cleanly to PDF/CSV.
-- [ ] **10. Logout**: Test logout from both Store and Lab portals to ensure session cache is cleanly purged.
+- [ ] **5. Vendor Requisition**: In `lab/request-item.html`, submit a requisition for stock. Verify it displays under `lab/request-history.html` as `Pending`.
+- [ ] **6. Store Approval**: In `store/approve-requests.html`, approve the requisition. Verify store inventory stock decreases and vendor request status becomes `Approved`.
+- [ ] **7. User Management**: In `store/user-management.html`, add a test user and verify role and vendor assignments.
+- [ ] **8. Vendor Management**: In `store/user-management.html`, add a test vendor and verify dependency protection prevents accidental deletion.
+- [ ] **9. Reports**: In `store/reports.html`, verify Purchase, Vendor Usage, and Current Stock tables generate accurately and export cleanly to PDF/CSV.
+- [ ] **10. Logout**: Test logout from both Store and Vendor portals to ensure session cache is cleanly purged.

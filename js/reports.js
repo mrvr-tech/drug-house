@@ -323,7 +323,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" style="text-align: center; padding: 25px; color: #6a7a6f;">
-                        No laboratory consumption records recorded yet.
+                        No vendor consumption records recorded yet.
                     </td>
                 </tr>
             `;
@@ -453,7 +453,7 @@
 
         if (reportType === 'purchase') {
             title = 'Store_Purchase_Report';
-            headers = ['Sr No', 'Item Name', 'Package', 'Quantity', 'Price (INR)', 'Tax (INR)', 'Bill No', 'Date', 'Expiry Date', 'Vendor Name'];
+            headers = ['Sr No', 'Item Name', 'Package', 'Quantity', 'Price (INR)', 'Tax (INR)', 'Bill No', 'Date', 'Expiry Date', 'Supplier Name'];
             rows = filteredPurchase.map((item, idx) => [
                 idx + 1,
                 item.item_name || '',
@@ -467,8 +467,8 @@
                 item.vendor_name || ''
             ]);
         } else if (reportType === 'lab_usage') {
-            title = 'Lab_Usage_Report';
-            headers = ['Lab Name', 'Item Name', 'Package', 'Requested Qty', 'Approved Qty', 'Date', 'Status'];
+            title = 'Vendor_Usage_Report';
+            headers = ['Vendor Name', 'Item Name', 'Package', 'Requested Qty', 'Approved Qty', 'Date', 'Status'];
             rows = filteredLabUsage.map(item => [
                 item.lab_name || item.lab || '',
                 item.item_name || item.item || '',
@@ -529,7 +529,7 @@
             const table = document.querySelector('#purchaseReportTableBody')?.closest('table');
             if (table) tableHtml = table.outerHTML;
         } else if (reportType === 'lab_usage') {
-            reportTitle = 'Lab Usage Report';
+            reportTitle = 'Vendor Usage Report';
             const table = document.querySelector('#labUsageTableBody')?.closest('table');
             if (table) tableHtml = table.outerHTML;
         } else if (reportType === 'stock') {
@@ -550,7 +550,7 @@
             <!DOCTYPE html>
             <html>
             <head>
-                <title>${escapeHtml(reportTitle)} - Vidya Niketan College of Pharmacy</title>
+                <title>${escapeHtml(reportTitle)} - Siddheshwar Drug House</title>
                 <style>
                     body { font-family: 'Segoe UI', Arial, sans-serif; margin: 30px; color: #1b2b20; }
                     .header { text-align: center; border-bottom: 2px solid #1f7a4d; padding-bottom: 12px; margin-bottom: 20px; }
@@ -572,8 +572,8 @@
             </head>
             <body>
                 <div class="header">
-                    <h1>Vidya Niketan College of Pharmacy</h1>
-                    <p>Lakhewadi, Pune | Pharmacy Store Management System</p>
+                    <h1>Siddheshwar Drug House</h1>
+                    <p>Medical Wholesale &bull; Behind The Market Yard, Mangalwedha, Solapur &bull; Tel: 9860326328</p>
                 </div>
                 <div class="report-title">
                     <h2>${escapeHtml(reportTitle)}</h2>

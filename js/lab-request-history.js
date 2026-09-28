@@ -174,7 +174,7 @@
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 35px; color: #6a7a6f;">
                         <div style="font-size: 1.8rem; margin-bottom: 6px;">📝</div>
-                        <strong>No requisition history found for your lab.</strong>
+                        <strong>No requisition history found for your vendor account.</strong>
                         <p style="margin-top: 4px; font-size: 0.88rem; color: #8c9b91;">
                             Click "Make New Request" to submit a stock requisition.
                         </p>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vidya Niketan College of Pharmacy - Pharmacy Store Management</title>
+    <title>Siddheshwar Drug House - Medical Wholesale Management</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .portal-selection {
@@ -52,16 +52,16 @@
     <!-- Header -->
     <header class="header">
         <div class="header-top">
-            <img src="assets/college-logo.png" alt="Vidya Niketan College of Pharmacy logo">
+            <img src="assets/siddheshwar-drug-house-logo-v3.svg" alt="Siddheshwar Drug House logo">
             <div>
-                <h1 class="college-title">Vidya Niketan College of Pharmacy</h1>
-                <p class="college-subtitle">Lakhewadi, Pune</p>
+                <h1 class="college-title">Siddheshwar Drug House</h1>
+                <p class="college-subtitle">Medical Wholesale &bull; Behind The Market Yard, Mangalwedha, Solapur &bull; Tel: 9860326328</p>
             </div>
         </div>
 
         <div class="system-title">
-            <h2>Pharmacy Store Management</h2>
-            <p>Complete Inventory and Lab Management System</p>
+            <h2>Medical Wholesale Store Management</h2>
+            <p>Complete Inventory and Vendor Management System</p>
         </div>
     </header>
 
@@ -72,7 +72,7 @@
                 <li><a href="index.html" class="nav-link active">Home</a></li>
                 <li><a href="login.html" class="nav-link">Login</a></li>
                 <li><a href="store/dashboard.html" class="nav-link">Store Keeper Portal</a></li>
-                <li><a href="lab/dashboard.html" class="nav-link">Lab Portal</a></li>
+                <li><a href="lab/dashboard.html" class="nav-link">Vendor Portal</a></li>
             </ul>
 
             <div class="nav-meta" id="navAuthArea">
@@ -84,9 +84,9 @@
     <!-- Main Content -->
     <main class="page-shell">
         <div class="content">
-            <h2 class="section-title">Welcome to Pharmacy Store Management</h2>
+            <h2 class="section-title">Welcome to Siddheshwar Drug House Store Management</h2>
             <p class="section-intro">
-                Centralized inventory tracking, purchase management, laboratory requisition workflows, and regulatory expiry monitoring for Vidya Niketan College of Pharmacy.
+                Centralized inventory tracking, purchase management, vendor requisition workflows, and regulatory expiry monitoring for Siddheshwar Drug House.
             </p>
 
             <div class="portal-selection">
@@ -96,22 +96,22 @@
                         <div class="portal-icon">📦</div>
                         <h3>Store Keeper Portal</h3>
                         <p>
-                            Manage central stock across Chemicals, Glassware, Instruments, and Computer Store. Review purchase records, approve lab requests, track expiry alerts, and export PDF/Excel reports.
+                            Manage central stock across Chemicals, Glassware, Instruments, and Computer Store. Review purchase records, approve vendor requests, track expiry alerts, and export PDF/Excel reports.
                         </p>
                     </div>
                     <a href="store/dashboard.html" class="btn">Access Store Keeper Dashboard →</a>
                 </div>
 
-                <!-- Lab User Card -->
+                <!-- Vendor User Card -->
                 <div class="portal-card" style="border-top: 4px solid #2d5f9f;">
                     <div>
-                        <div class="portal-icon">🔬</div>
-                        <h3>Laboratory Portal</h3>
+                        <div class="portal-icon">🏢</div>
+                        <h3>Vendor Portal</h3>
                         <p>
-                            Dedicated portal for Labs 1 through 17. Check live store availability, submit requisitions for chemicals/glassware/instruments, and monitor private request approval histories.
+                            Dedicated portal for Vendors. Check live store availability, submit requisitions for chemicals/glassware/instruments, and monitor private request approval histories.
                         </p>
                     </div>
-                    <a href="lab/dashboard.html" class="btn btn-secondary">Access Lab Dashboard →</a>
+                    <a href="lab/dashboard.html" class="btn btn-secondary">Access Vendor Dashboard →</a>
                 </div>
             </div>
         </div>
@@ -119,7 +119,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-        Vidya Niketan College of Pharmacy | Pharmacy Store Management System
+        Siddheshwar Drug House | Medical Wholesale | Behind The Market Yard, Mangalwedha, Solapur | Phone: 9860326328
     </footer>
 
     <!-- Scripts -->
@@ -136,7 +136,7 @@
                     if (navAuthArea && profile) {
                         const displayName = profile.role === 'store' 
                             ? `Store Admin: ${profile.full_name || profile.username || 'Store Keeper'}`
-                            : `Lab User: ${profile.lab_name || profile.username || 'Lab User'}`;
+                            : `Vendor User: ${profile.lab_name || profile.username || 'Vendor User'}`;
                         navAuthArea.innerHTML = `
                             <span class="user-chip">${displayName}</span>
                             <a href="login.html" class="nav-link" data-action="logout">Logout</a>

@@ -165,7 +165,7 @@
                             <strong>Total Store Stock:</strong> ${totalStock} units<br>
                             <strong>Expiry Date:</strong> ${expiryBadge}<br>
                             <strong>Price:</strong> ₹${price}<br>
-                            <strong>Vendor:</strong> ${escapeHtml(vendor)}
+                            <strong>Supplier:</strong> ${escapeHtml(vendor)}
                         </div>
                         ${availHtml}
                     </div>
@@ -205,7 +205,7 @@
         if (userAuth && userAuth.profile && userAuth.profile.lab_name) {
             const titleEl = document.getElementById('labHeaderTitle');
             if (titleEl) {
-                titleEl.textContent = `🔬 ${userAuth.profile.lab_name} Dashboard`;
+                titleEl.textContent = `🏢 ${userAuth.profile.lab_name} Dashboard`;
             }
         }
 

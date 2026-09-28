@@ -152,14 +152,14 @@
                     labMap.set(l.id, name);
                 });
 
-                const defaultAdminEmail = (window.APP_CONFIG && window.APP_CONFIG.ADMIN_EMAIL) || 'rathodstudents@gmail.com';
+                const defaultAdminEmail = (window.APP_CONFIG && window.APP_CONFIG.ADMIN_EMAIL) || 'vedantpatil230406@gmail.com';
                 users = (profilesRes.data || []).map(p => ({
                     id: p.id,
                     email: p.role === 'store' ? defaultAdminEmail : (p.display_name ? `${p.display_name.toLowerCase().replace(/\s+/g, '')}@pharmacy.com` : '-'),
-                    display_name: p.display_name || (p.role === 'store' ? 'Store Keeper' : 'Lab User'),
+                    display_name: p.display_name || (p.role === 'store' ? 'Store Keeper' : 'Vendor User'),
                     role: p.role,
                     lab_id: p.lab_id,
-                    lab_name: p.lab_id ? (labMap.get(p.lab_id) || 'Assigned Lab') : null,
+                    lab_name: p.lab_id ? (labMap.get(p.lab_id) || 'Assigned Vendor') : null,
                     created_at: p.created_at
                 }));
             }
@@ -180,7 +180,7 @@
 
         } catch (err) {
             console.error('Error loading management data:', err);
-            showAlert('error', 'Failed to load user and laboratory records: ' + (err.message || err));
+            showAlert('error', 'Failed to load user and vendor records: ' + (err.message || err));
         }
     }
 
@@ -205,11 +205,11 @@
         tbody.innerHTML = users.map(user => {
             const roleBadge = user.role === 'store'
                 ? '<span class="badge badge-success">Store Admin</span>'
-                : '<span class="badge badge-warning">Lab User</span>';
+                : '<span class="badge badge-warning">Vendor User</span>';
 
             const labDisplay = user.role === 'store' 
                 ? '<em style="color: #8c9b91;">N/A (Store Admin)</em>'
-                : `<strong>${escapeHtml(user.lab_name || 'Lab')}</strong>`;
+                : `<strong>${escapeHtml(user.lab_name || 'Vendor')}</strong>`;
 
             return `
                 <tr>
@@ -238,7 +238,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="3" style="text-align: center; padding: 30px; color: #6a7a6f;">
-                        🔬 No laboratories configured.
+                        🏢 No vendors configured.
                     </td>
                 </tr>
             `;
@@ -246,7 +246,7 @@
         }
 
         tbody.innerHTML = labs.map(lab => {
-            const labName = lab.name || lab.lab_name || `Lab ${lab.id}`;
+            const labName = lab.name || lab.lab_name || `Vendor ${lab.id}`;
             const createdAt = formatDateTime(lab.created_at);
 
             return `
@@ -255,7 +255,7 @@
                     <td>${createdAt}</td>
                     <td>
                         <button type="button" class="btn-danger-sm" onclick="UserManagementModule.handleRemoveLab('${lab.id}', '${escapeHtml(labName)}')">
-                            🗑️ Remove Lab
+                            🗑️ Remove Vendor
                         </button>
                     </td>
                 </tr>
@@ -268,7 +268,7 @@
      */
     async function createLabDirect(labName) {
         const cleanName = (labName || '').trim();
-        if (!cleanName) throw new Error('Laboratory name is required.');
+        if (!cleanName) throw new Error('Vendor name is required.');
 
         try {
             const result = await invokeAdminFunction('create-lab', { name: cleanName });
@@ -301,15 +301,15 @@
         if (!select) return;
 
         if (!labs || labs.length === 0) {
-            select.innerHTML = '<option value="">-- No Labs Found (Add a lab first) --</option>';
+            select.innerHTML = '<option value="">-- No Vendors Found (Add a vendor first) --</option>';
             if (noLabsNotice) noLabsNotice.style.display = 'block';
             return;
         }
 
         if (noLabsNotice) noLabsNotice.style.display = 'none';
-        select.innerHTML = '<option value="">-- Select Laboratory --</option>' +
+        select.innerHTML = '<option value="">-- Select Vendor --</option>' +
             labs.map(lab => {
-                const name = lab.name || `Lab ${lab.id}`;
+                const name = lab.name || `Vendor ${lab.id}`;
                 return `<option value="${lab.id}">${escapeHtml(name)}</option>`;
             }).join('');
     }
@@ -318,14 +318,14 @@
      * Quick Add Lab Prompt
      */
     async function quickAddLabPrompt() {
-        const defaultName = `Lab ${(cachedLabs ? cachedLabs.length : 0) + 1}`;
-        const inputName = prompt('Enter New Laboratory Name (e.g. Lab 1, Lab 2 - Pharmacology):', defaultName);
+        const defaultName = `Vendor ${(cachedLabs ? cachedLabs.length : 0) + 1}`;
+        const inputName = prompt('Enter New Vendor Name (e.g. Vendor 1, Wholesale Client A):', defaultName);
         if (!inputName || !inputName.trim()) return;
 
         try {
-            showAlert('success', `⏳ Creating laboratory "${inputName.trim()}"...`);
+            showAlert('success', `⏳ Creating vendor "${inputName.trim()}"...`);
             const newLab = await createLabDirect(inputName.trim());
-            showAlert('success', `Laboratory "${inputName.trim()}" added successfully!`);
+            showAlert('success', `Vendor "${inputName.trim()}" added successfully!`);
             await loadData();
             
             // Auto-select newly created lab in dropdown
@@ -334,40 +334,33 @@
                 select.value = newLab.id;
             }
         } catch (err) {
-            console.error('Quick Add Lab error:', err);
-            showAlert('error', err.message || 'Failed to add laboratory.');
+            console.error('Quick Add Vendor error:', err);
+            showAlert('error', err.message || 'Failed to add vendor.');
         }
     }
 
     /**
-     * Seed Standard Pharmacy College Laboratories (1 to 17)
+     * Seed Standard Vendors (1 to 10)
      */
     async function seedStandardLabs() {
         const standardNames = [
-            'Lab 1 - Pharmaceutics',
-            'Lab 2 - Pharmaceutical Chemistry',
-            'Lab 3 - Pharmacology',
-            'Lab 4 - Pharmacognosy',
-            'Lab 5 - Pharmaceutical Analysis',
-            'Lab 6 - Microbiology & Biotechnology',
-            'Lab 7 - Hospital & Clinical Pharmacy',
-            'Lab 8 - Biochemistry',
-            'Lab 9 - Human Anatomy & Physiology',
-            'Lab 10 - Physical Pharmacy',
-            'Lab 11 - Medicinal Chemistry',
-            'Lab 12 - Pharmacokinetics',
-            'Lab 13 - Dosage Form Design',
-            'Lab 14 - Regulatory Affairs & QC',
-            'Lab 15 - Research & Project Lab',
-            'Lab 16 - Central Instrumentation Lab',
-            'Lab 17 - Computer Applications Lab'
+            'Vendor 1 - Wholesale',
+            'Vendor 2 - General Pharmacy',
+            'Vendor 3 - City Drug House',
+            'Vendor 4 - MedPlus Store',
+            'Vendor 5 - Apollo Partner',
+            'Vendor 6 - Care Pharmacy',
+            'Vendor 7 - LifeLine Medicals',
+            'Vendor 8 - Sanjeevani Store',
+            'Vendor 9 - HealthFirst Pharma',
+            'Vendor 10 - Standard Chemists'
         ];
 
-        if (!confirm(`Do you want to initialize all ${standardNames.length} standard college laboratories?\n\nThis will add missing labs (Lab 1 to Lab 17) to the database.`)) {
+        if (!confirm(`Do you want to initialize all ${standardNames.length} standard vendors?\n\nThis will add standard vendors (Vendor 1 to Vendor 10) to the database.`)) {
             return;
         }
 
-        showAlert('success', `⏳ Provisioning standard laboratories...`);
+        showAlert('success', `⏳ Provisioning standard vendors...`);
 
         try {
             const client = getClient();
@@ -380,7 +373,7 @@
                 .map(name => ({ name }));
 
             if (toInsert.length === 0) {
-                showAlert('success', 'All standard college laboratories are already configured in the database.');
+                showAlert('success', 'All standard vendors are already configured in the database.');
                 return;
             }
 
@@ -394,12 +387,12 @@
                 throw insertErr;
             }
 
-            showAlert('success', `✅ Successfully initialized ${toInsert.length} college laboratories!`);
+            showAlert('success', `✅ Successfully initialized ${toInsert.length} vendors!`);
             await loadData();
 
         } catch (err) {
-            console.error('Seed Standard Labs error:', err);
-            showAlert('error', err.message || 'Failed to seed laboratories.');
+            console.error('Seed Standard Vendors error:', err);
+            showAlert('error', err.message || 'Failed to seed vendors.');
         }
     }
 
@@ -458,8 +451,8 @@
         if (userType === 'lab' && !labId) {
             if (errorEl) {
                 errorEl.textContent = (cachedLabs.length === 0)
-                    ? 'No laboratories exist. Click "+ Quick Add Lab" above to create one first.'
-                    : 'Please select an assigned laboratory for this Lab user.';
+                    ? 'No vendors exist. Click "+ Quick Add Vendor" above to create one first.'
+                    : 'Please select an assigned vendor for this Vendor user.';
                 errorEl.style.display = 'block';
             }
             return;
@@ -568,7 +561,7 @@
 
         if (!labName) {
             if (errorEl) {
-                errorEl.textContent = 'Laboratory name is required.';
+                errorEl.textContent = 'Vendor name is required.';
                 errorEl.style.display = 'block';
             }
             return;
@@ -576,26 +569,26 @@
 
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ Creating Lab...';
+            submitBtn.textContent = '⏳ Creating Vendor...';
         }
 
         try {
             await createLabDirect(labName);
             closeModal('addLabModal');
             if (form) form.reset();
-            showAlert('success', `Laboratory "${labName}" created successfully!`);
+            showAlert('success', `Vendor "${labName}" created successfully!`);
             await loadData();
 
         } catch (err) {
-            console.error('Create Lab error:', err);
+            console.error('Create Vendor error:', err);
             if (errorEl) {
-                errorEl.textContent = err.message || 'Failed to create laboratory.';
+                errorEl.textContent = err.message || 'Failed to create vendor.';
                 errorEl.style.display = 'block';
             }
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Create Lab';
+                submitBtn.textContent = 'Create Vendor';
             }
         }
     }
@@ -604,17 +597,17 @@
      * Handle Remove Lab Action
      */
     async function handleRemoveLab(labId, labName) {
-        if (!confirm(`Are you sure you want to remove laboratory "${labName}"?\n\nThis operation will only succeed if no active users or requisition history depend on this lab.`)) {
+        if (!confirm(`Are you sure you want to remove vendor "${labName}"?\n\nThis operation will only succeed if no active users or requisition history depend on this vendor.`)) {
             return;
         }
 
         try {
             const result = await invokeAdminFunction('delete-lab', { lab_id: labId });
-            showAlert('success', result.message || `Laboratory "${labName}" removed successfully.`);
+            showAlert('success', result.message || `Vendor "${labName}" removed successfully.`);
             await loadData();
         } catch (err) {
-            console.error('Delete Lab error:', err);
-            showAlert('error', err.message || 'Failed to remove laboratory.');
+            console.error('Delete Vendor error:', err);
+            showAlert('error', err.message || 'Failed to remove vendor.');
         }
     }
 

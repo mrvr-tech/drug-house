@@ -260,7 +260,7 @@
             }
 
             if (!labId) {
-                throw new Error('No registered laboratory found in database. Please ask the Store Keeper to add a laboratory.');
+                throw new Error('No registered vendor found in database. Please ask the Store Keeper to add a vendor.');
             }
 
             const today = new Date().toISOString().split('T')[0];

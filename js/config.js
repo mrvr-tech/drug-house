@@ -34,7 +34,7 @@
         'sb_publishable_-bdULoXJ2P3KVMk5DPHZXw_S7sPL9JP';
 
     const DEFAULT_EMAIL_DOMAIN = env.DEFAULT_EMAIL_DOMAIN || 'pharmacy.com';
-    const ADMIN_EMAIL = env.ADMIN_EMAIL || 'rathodstudents@gmail.com';
+    const ADMIN_EMAIL = env.ADMIN_EMAIL || 'vedantpatil230406@gmail.com';
 
     return {
         SUPABASE_URL,
