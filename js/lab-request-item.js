@@ -288,8 +288,7 @@
                         id: user.id,
                         role: 'lab',
                         lab_id: labId,
-                        display_name: labName,
-                        updated_at: new Date().toISOString()
+                        display_name: labName
                     }]);
                 } catch (profSyncErr) {
                     console.warn('Profile sync notice:', profSyncErr);

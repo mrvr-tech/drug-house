@@ -59,9 +59,9 @@
     }
 
     /**
-     * Display top-level feedback message
+     * Display top-level feedback message with detailed Supabase error fields (message, details, hint, code)
      */
-    function showFeedback(type, message) {
+    function showFeedback(type, message, err = null) {
         const successBanner = document.getElementById('actionSuccess');
         const errorBanner = document.getElementById('actionError');
 
@@ -79,7 +79,33 @@
             successBanner.style.display = 'block';
             successBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (type === 'error' && errorBanner) {
-            errorBanner.innerHTML = `<strong>❌ Error:</strong> ${escapeHtml(message)}`;
+            const errorObj = err || (typeof message === 'object' ? message : null);
+            const mainMessage = (errorObj && errorObj.message) 
+                ? errorObj.message 
+                : (typeof message === 'string' ? message : 'Operation failed.');
+
+            let detailsHtml = '';
+            if (errorObj && typeof errorObj === 'object') {
+                const metaRows = [];
+                if (errorObj.code) {
+                    metaRows.push(`<div><strong>Code:</strong> <code>${escapeHtml(errorObj.code)}</code></div>`);
+                }
+                if (errorObj.details) {
+                    metaRows.push(`<div><strong>Details:</strong> ${escapeHtml(errorObj.details)}</div>`);
+                }
+                if (errorObj.hint) {
+                    metaRows.push(`<div><strong>Hint:</strong> ${escapeHtml(errorObj.hint)}</div>`);
+                }
+                if (metaRows.length > 0) {
+                    detailsHtml = `
+                        <div style="margin-top: 10px; padding: 10px 14px; background: rgba(0, 0, 0, 0.05); border-left: 3px solid #dc3545; border-radius: 4px; font-size: 0.88rem; line-height: 1.6;">
+                            ${metaRows.join('')}
+                        </div>
+                    `;
+                }
+            }
+
+            errorBanner.innerHTML = `<div><strong>❌ Error:</strong> ${escapeHtml(mainMessage)}</div>${detailsHtml}`;
             errorBanner.style.display = 'block';
             errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -461,7 +487,7 @@
         } catch (err) {
             console.error('Approve RPC failed:', err);
             const msg = err.message || 'Failed to approve request. Please check available stock.';
-            showFeedback('error', msg);
+            showFeedback('error', msg, err);
             buttons.forEach(btn => btn.disabled = false);
         }
     }
@@ -487,7 +513,7 @@
         } catch (err) {
             console.error('Reject RPC failed:', err);
             const msg = err.message || 'Failed to reject request.';
-            showFeedback('error', msg);
+            showFeedback('error', msg, err);
             buttons.forEach(btn => btn.disabled = false);
         }
     }
@@ -512,7 +538,7 @@
             renderRejectedTable(rejectedList);
         } catch (err) {
             console.error('Error loading request queues:', err);
-            showFeedback('error', 'Unable to retrieve requests data from Supabase.');
+            showFeedback('error', 'Unable to retrieve requests data from Supabase.', err);
         }
     }
 
@@ -520,7 +546,6 @@
      * Initialize Module
      */
     async function init() {
-        const client = getClient();
         const pendingTbody = document.getElementById('pendingTableBody');
         const approvedTbody = document.getElementById('approvedTableBody');
 
@@ -541,22 +566,6 @@
                     </td>
                 </tr>
             `;
-        }
-
-        // Ensure Store Admin profile role is active in database
-        try {
-            const session = await auth.getSession();
-            const user = session?.user;
-            if (user && user.email && (user.email.toLowerCase() === 'vedantpatil230406@gmail.com' || user.email.toLowerCase() === 'rathodstudents@gmail.com' || user.email.toLowerCase().startsWith('admin'))) {
-                await client.from('profiles').upsert([{
-                    id: user.id,
-                    role: 'store',
-                    display_name: 'Store Admin',
-                    updated_at: new Date().toISOString()
-                }]);
-            }
-        } catch (syncErr) {
-            console.warn('Store admin profile check notice:', syncErr);
         }
 
         await loadAll();
