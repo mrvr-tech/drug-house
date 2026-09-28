@@ -344,63 +344,6 @@
     }
 
     /**
-     * Seed Standard Vendors (1 to 10)
-     */
-    async function seedStandardLabs() {
-        const standardNames = [
-            'Vendor 1 - Wholesale',
-            'Vendor 2 - General Pharmacy',
-            'Vendor 3 - City Drug House',
-            'Vendor 4 - MedPlus Store',
-            'Vendor 5 - Apollo Partner',
-            'Vendor 6 - Care Pharmacy',
-            'Vendor 7 - LifeLine Medicals',
-            'Vendor 8 - Sanjeevani Store',
-            'Vendor 9 - HealthFirst Pharma',
-            'Vendor 10 - Standard Chemists'
-        ];
-
-        if (!confirm(`Do you want to initialize all ${standardNames.length} standard vendors?\n\nThis will add standard vendors (Vendor 1 to Vendor 10) to the database.`)) {
-            return;
-        }
-
-        showAlert('success', `⏳ Provisioning standard vendors...`);
-
-        try {
-            const client = getClient();
-            const existingNames = new Set(
-                (cachedLabs || []).map(l => (l.name || '').toLowerCase().trim())
-            );
-
-            const toInsert = standardNames
-                .filter(name => !existingNames.has(name.toLowerCase().trim()))
-                .map(name => ({ name }));
-
-            if (toInsert.length === 0) {
-                showAlert('success', 'All standard vendors are already configured in the database.');
-                return;
-            }
-
-            // Batch insert directly into labs table
-            const { error: insertErr } = await client.from('labs').insert(toInsert);
-
-            if (insertErr) {
-                if (insertErr.code === '42501' || (insertErr.message && insertErr.message.includes('row-level security'))) {
-                    throw new Error('Database permission error: Table "labs" requires an RLS insert policy for authenticated users. Please run the SQL setup script in Supabase.');
-                }
-                throw insertErr;
-            }
-
-            showAlert('success', `✅ Successfully initialized ${toInsert.length} vendors!`);
-            await loadData();
-
-        } catch (err) {
-            console.error('Seed Standard Vendors error:', err);
-            showAlert('error', err.message || 'Failed to seed vendors.');
-        }
-    }
-
-    /**
      * Alert Banner Helper
      */
     function showAlert(type, message) {
@@ -667,7 +610,6 @@
         handleRemoveLab,
         createLabDirect,
         quickAddLabPrompt,
-        seedStandardLabs,
         invokeAdminFunction
     };
 }));

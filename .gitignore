@@ -39,3 +39,6 @@ desktop.ini
 # Antigravity & AI Assistant metadata
 .antigravity/
 .gemini/
+
+# Supabase CLI temporary files
+supabase/.temp/
